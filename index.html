@@ -1,0 +1,1295 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>狗窩蛋事件</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #20313a;
+        --muted: #64727d;
+        --panel: #ffffff;
+        --paper: #fff9ea;
+        --line: #d8e2e7;
+        --sky: #c5eafa;
+        --grass: #72b967;
+        --soil: #a6764f;
+        --gold: #f0b84f;
+        --blue: #3f82b5;
+        --green: #438f5a;
+        --red: #ce6555;
+        --purple: #6f72c8;
+        --shadow: 0 18px 42px rgba(31, 48, 58, 0.16);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+        background:
+          linear-gradient(180deg, rgba(203, 237, 250, 0.96), rgba(255, 246, 218, 0.98)),
+          repeating-linear-gradient(45deg, rgba(32, 49, 58, 0.035) 0 18px, transparent 18px 36px);
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .wrap {
+        width: min(1220px, calc(100vw - 28px));
+        margin: 0 auto;
+        padding: 22px 0;
+      }
+
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .kicker {
+        margin: 0 0 6px;
+        color: var(--blue);
+        font-size: 0.88rem;
+        font-weight: 900;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        margin-bottom: 0;
+        font-size: clamp(2.2rem, 5vw, 3.6rem);
+        line-height: 1.05;
+      }
+
+      .hud {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(72px, 1fr));
+        gap: 9px;
+      }
+
+      .hud-card {
+        min-height: 72px;
+        padding: 10px;
+        border: 2px solid rgba(32, 49, 58, 0.08);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.82);
+        text-align: center;
+      }
+
+      .hud-card strong {
+        display: block;
+        font-size: 1.48rem;
+        line-height: 1.05;
+      }
+
+      .hud-card span {
+        color: var(--muted);
+        font-weight: 900;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(340px, 1.06fr) minmax(360px, 0.94fr);
+        gap: 16px;
+        align-items: stretch;
+      }
+
+      .scene,
+      .panel {
+        min-height: 700px;
+        border: 2px solid rgba(32, 49, 58, 0.08);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .scene {
+        position: relative;
+        padding: 22px;
+        background:
+          linear-gradient(180deg, var(--sky) 0 34%, var(--grass) 34% 100%);
+      }
+
+      .scene::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.26) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+        background-size: 44px 44px;
+        opacity: 0.35;
+        pointer-events: none;
+      }
+
+      .cloud {
+        position: absolute;
+        width: 120px;
+        height: 38px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      .cloud::before,
+      .cloud::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        background: inherit;
+      }
+
+      .cloud::before {
+        width: 52px;
+        height: 52px;
+        top: -20px;
+        left: 18px;
+      }
+
+      .cloud::after {
+        width: 62px;
+        height: 62px;
+        top: -30px;
+        right: 16px;
+      }
+
+      .cloud.a {
+        top: 48px;
+        left: 9%;
+      }
+
+      .cloud.b {
+        top: 86px;
+        right: 10%;
+        transform: scale(0.78);
+      }
+
+      .case-yard {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        gap: 6px;
+        margin-top: 132px;
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.34);
+      }
+
+      .tile {
+        aspect-ratio: 1;
+        border: 0;
+        border-radius: 5px;
+        background: #67a85d;
+        box-shadow: inset 0 5px rgba(255, 255, 255, 0.2), inset 0 -8px rgba(0, 0, 0, 0.1);
+      }
+
+      .tile.path {
+        background: #d2b36f;
+      }
+
+      .tile.soil {
+        background: var(--soil);
+      }
+
+      .tile.water {
+        background: #5aa6cf;
+      }
+
+      .tile.stage {
+        position: relative;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        cursor: pointer;
+        font-weight: 900;
+        outline: 3px solid rgba(255, 255, 255, 0.72);
+        outline-offset: -5px;
+        transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+      }
+
+      .tile.stage:hover,
+      .tile.stage:focus-visible {
+        transform: translateY(-2px);
+        outline-color: #fff4a8;
+      }
+
+      .tile.stage.is-open {
+        filter: saturate(1.18) brightness(1.08);
+        box-shadow:
+          0 0 0 3px rgba(255, 244, 168, 0.72),
+          0 0 22px rgba(255, 226, 105, 0.72),
+          inset 0 5px rgba(255, 255, 255, 0.28),
+          inset 0 -8px rgba(0, 0, 0, 0.09);
+      }
+
+      .tile.stage.is-done {
+        filter: saturate(1.35) brightness(1.15);
+        box-shadow:
+          0 0 0 4px #fff4a8,
+          0 0 32px rgba(255, 226, 105, 0.9),
+          inset 0 7px rgba(255, 255, 255, 0.32),
+          inset 0 -8px rgba(0, 0, 0, 0.08);
+      }
+
+      .stage-icon {
+        display: grid;
+        place-items: center;
+        width: min(72%, 62px);
+        aspect-ratio: 1;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.23);
+        box-shadow: inset 0 -8px rgba(0, 0, 0, 0.12);
+        font-size: clamp(0.86rem, 2vw, 1.15rem);
+      }
+
+      .stage-check {
+        position: absolute;
+        right: 7px;
+        top: 6px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        color: #34724c;
+        font-size: 0.72rem;
+        line-height: 18px;
+      }
+
+      .doghouse {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 130px 1fr;
+        gap: 14px;
+        align-items: center;
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.86);
+        border: 2px solid rgba(32, 49, 58, 0.08);
+      }
+
+      .house-art {
+        position: relative;
+        height: 110px;
+        border-radius: 8px 8px 5px 5px;
+        background: #b97c4e;
+        box-shadow: inset 0 -14px rgba(0, 0, 0, 0.12);
+      }
+
+      .house-art::before {
+        content: "";
+        position: absolute;
+        left: 17px;
+        right: 17px;
+        top: -32px;
+        height: 58px;
+        transform: skewY(-8deg);
+        border-radius: 6px;
+        background: #8e5d3d;
+      }
+
+      .house-door {
+        position: absolute;
+        left: 44px;
+        bottom: 0;
+        width: 42px;
+        height: 58px;
+        border-radius: 24px 24px 0 0;
+        background: #503d32;
+      }
+
+      .egg {
+        position: absolute;
+        right: 20px;
+        bottom: 13px;
+        width: 34px;
+        height: 45px;
+        border-radius: 50% 50% 46% 46%;
+        background: #fff5cf;
+        box-shadow: inset -5px -7px rgba(0, 0, 0, 0.08), 0 0 18px rgba(255, 226, 105, 0.72);
+      }
+
+      .case-note {
+        color: var(--muted);
+        font-weight: 800;
+        line-height: 1.55;
+      }
+
+      .notebook {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+        padding: 14px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.86);
+        border: 2px solid rgba(32, 49, 58, 0.08);
+      }
+
+      .notebook strong {
+        display: block;
+      }
+
+      .log-list {
+        display: grid;
+        gap: 6px;
+        margin: 0;
+        padding-left: 1.15rem;
+        color: var(--muted);
+        font-weight: 800;
+        line-height: 1.45;
+      }
+
+      .panel {
+        background: rgba(255, 255, 255, 0.96);
+      }
+
+      .screen {
+        display: none;
+        min-height: 700px;
+        padding: 26px;
+      }
+
+      .screen.active {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .intro,
+      .finish {
+        justify-content: center;
+      }
+
+      .intro p,
+      .finish p {
+        color: var(--muted);
+        font-size: 1.08rem;
+        line-height: 1.72;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .chip {
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: #eef6f1;
+        color: #326f48;
+        font-weight: 900;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .primary,
+      .secondary,
+      .icon {
+        min-height: 46px;
+        border: 0;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 900;
+      }
+
+      .primary {
+        padding: 0 18px;
+        color: #fff;
+        background: var(--green);
+      }
+
+      .secondary {
+        padding: 0 18px;
+        color: var(--ink);
+        background: #edf3f5;
+      }
+
+      .icon {
+        display: grid;
+        place-items: center;
+        width: 46px;
+        min-width: 46px;
+        color: var(--ink);
+        background: #edf3f5;
+        font-size: 1.35rem;
+      }
+
+      .stage-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .stage-head > div {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .stage-head h2 {
+        margin-bottom: 0;
+        font-size: 1.65rem;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+        color: var(--muted);
+        font-weight: 900;
+      }
+
+      .bar {
+        height: 12px;
+        border-radius: 999px;
+        background: #e5edf1;
+        overflow: hidden;
+      }
+
+      .bar i {
+        display: block;
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--gold);
+        transition: width 180ms ease;
+      }
+
+      .prompt-card {
+        min-height: 130px;
+        padding: 18px;
+        border: 2px dashed #bfd2db;
+        border-radius: 8px;
+        background: #f8fbfc;
+      }
+
+      .prompt-title {
+        margin-bottom: 8px;
+        color: var(--blue);
+        font-weight: 900;
+      }
+
+      .question {
+        margin: 0;
+        font-size: 1.28rem;
+        font-weight: 900;
+        line-height: 1.55;
+      }
+
+      .answers {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .answer {
+        min-height: 62px;
+        padding: 11px;
+        border: 2px solid #d8e3e7;
+        border-radius: 8px;
+        background: #fff;
+        color: var(--ink);
+        cursor: pointer;
+        font-size: 1.05rem;
+        font-weight: 900;
+      }
+
+      .answer:hover,
+      .answer:focus-visible {
+        border-color: var(--blue);
+        outline: 0;
+      }
+
+      .answer.good {
+        border-color: var(--green);
+        background: #eaf6ed;
+      }
+
+      .answer.bad {
+        border-color: var(--red);
+        background: #fff0ee;
+      }
+
+      .sequence-board {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .sequence-options,
+      .sequence-picked {
+        display: grid;
+        gap: 8px;
+      }
+
+      .sequence-picked {
+        min-height: 150px;
+        padding: 10px;
+        border: 2px dashed #c5d6de;
+        border-radius: 8px;
+        background: #f8fbfc;
+      }
+
+      .sequence-label {
+        color: var(--muted);
+        font-weight: 900;
+      }
+
+      .seq-btn {
+        min-height: 48px;
+        border: 2px solid #d8e3e7;
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        font-weight: 900;
+      }
+
+      .seq-btn:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+
+      .picked-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: #eef5f8;
+        font-weight: 900;
+      }
+
+      .picked-item b {
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        color: #fff;
+        background: var(--blue);
+      }
+
+      .feedback {
+        min-height: 58px;
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        background: #f0f6f8;
+        color: var(--muted);
+        font-weight: 850;
+        line-height: 1.5;
+      }
+
+      .feedback.good {
+        background: #eaf6ed;
+        color: #316a46;
+      }
+
+      .feedback.try {
+        background: #fff3e4;
+        color: #85531f;
+      }
+
+      .badge-box {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .badge {
+        min-height: 70px;
+        padding: 10px;
+        border: 2px solid #d8e3e7;
+        border-radius: 8px;
+        background: #f8fbfc;
+        color: var(--muted);
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .badge.done {
+        color: #755115;
+        border-color: rgba(240, 184, 79, 0.78);
+        background: #fff6d8;
+      }
+
+      .medal {
+        display: grid;
+        place-items: center;
+        width: 86px;
+        height: 86px;
+        margin-bottom: 18px;
+        border-radius: 8px;
+        color: #6e4910;
+        background: var(--gold);
+        box-shadow: inset 0 10px rgba(255, 255, 255, 0.25), inset 0 -12px rgba(0, 0, 0, 0.1);
+        font-size: 2rem;
+        font-weight: 900;
+      }
+
+      @media (max-width: 940px) {
+        .wrap {
+          width: min(100vw - 18px, 680px);
+          padding: 12px 0;
+        }
+
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .top {
+          align-items: flex-start;
+        }
+
+        .scene,
+        .panel,
+        .screen {
+          min-height: auto;
+        }
+
+        .scene {
+          padding: 14px;
+        }
+
+        .case-yard {
+          margin-top: 112px;
+          gap: 4px;
+          padding: 8px;
+        }
+
+        .screen {
+          padding: 20px;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .top {
+          flex-direction: column;
+        }
+
+        .hud {
+          width: 100%;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .case-yard {
+          grid-template-columns: repeat(5, 1fr);
+        }
+
+        .tile.hide-mobile {
+          display: none;
+        }
+
+        .doghouse {
+          grid-template-columns: 1fr;
+        }
+
+        .answers,
+        .badge-box {
+          grid-template-columns: 1fr;
+        }
+
+        .question {
+          font-size: 1.14rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <div>
+          <p class="kicker">國小二下國語第八課延伸｜閱讀推理遊戲</p>
+          <h1>狗窩蛋事件</h1>
+        </div>
+        <div class="hud" aria-label="遊戲狀態">
+          <div class="hud-card"><strong id="starCount">0</strong><span>線索星</span></div>
+          <div class="hud-card"><strong id="badgeCount">0/6</strong><span>徽章</span></div>
+          <div class="hud-card"><strong id="calmCount">0</strong><span>冷靜值</span></div>
+          <div class="hud-card"><strong id="observeCount">0</strong><span>觀察值</span></div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="scene" aria-label="動物村事件地圖">
+          <span class="cloud a"></span>
+          <span class="cloud b"></span>
+          <div id="caseYard" class="case-yard"></div>
+          <div class="doghouse">
+            <div class="house-art" aria-hidden="true">
+              <span class="house-door"></span>
+              <span class="egg"></span>
+            </div>
+            <div>
+              <strong>事件現場：黃狗媽媽的家</strong>
+              <p class="case-note">狗窩裡出現一顆蛋。大家說法不同，小偵探要用線索找出真相。</p>
+            </div>
+          </div>
+          <div class="notebook">
+            <strong>偵探筆記</strong>
+            <ul id="caseLog" class="log-list"></ul>
+          </div>
+        </section>
+
+        <section class="panel" aria-label="任務面板">
+          <div id="introScreen" class="screen intro active">
+            <div class="chips">
+              <span class="chip">角色證詞</span>
+              <span class="chip">線索推理</span>
+              <span class="chip">句子排序</span>
+              <span class="chip">生字辨識</span>
+            </div>
+            <h2>動物村有一件怪事</h2>
+            <p>黃狗媽媽的窩裡出現一顆蛋，公雞急著把消息傳出去。你要扮演小偵探，訪問角色、整理線索、修理句子，最後完成真相報告。</p>
+            <div class="actions">
+              <button id="startBtn" class="primary" type="button">開始調查</button>
+              <button id="resetBtn" class="secondary" type="button">重新開始</button>
+            </div>
+            <div id="badgeBox" class="badge-box"></div>
+          </div>
+
+          <div id="stageScreen" class="screen">
+            <div class="stage-head">
+              <button id="homeBtn" class="icon" type="button" aria-label="回到首頁">‹</button>
+              <div>
+                <p id="stageTopic" class="kicker">任務</p>
+                <h2 id="stageTitle"></h2>
+              </div>
+              <button id="speakBtn" class="icon" type="button" aria-label="朗讀題目">▶</button>
+            </div>
+            <div class="bar-row">
+              <span id="progressText">1/3</span>
+              <div class="bar" aria-hidden="true"><i id="progressBar"></i></div>
+            </div>
+            <div class="prompt-card">
+              <div id="promptTitle" class="prompt-title"></div>
+              <p id="questionText" class="question"></p>
+            </div>
+            <div id="answerArea"></div>
+            <div id="feedback" class="feedback" role="status"></div>
+            <div class="actions">
+              <button id="hintBtn" class="secondary" type="button">看提示</button>
+              <button id="undoBtn" class="secondary" type="button" hidden>重排</button>
+              <button id="nextBtn" class="primary" type="button" hidden>下一題</button>
+            </div>
+          </div>
+
+          <div id="finishScreen" class="screen finish">
+            <div class="medal">破案</div>
+            <h2>真相報告完成</h2>
+            <p id="finishText"></p>
+            <div class="actions">
+              <button id="reviewBtn" class="primary" type="button">練習錯題</button>
+              <button id="againBtn" class="secondary" type="button">重新調查</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const stages = [
+        {
+          id: "scene",
+          title: "事件現場",
+          topic: "誰先看到蛋",
+          icon: "現",
+          color: "#c4834e",
+          badge: "現場線索",
+          intro: "先看誰發現了什麼，再想他的反應合不合理。",
+          questions: [
+            mc("誰最先發現狗窩裡有蛋？", ["公雞", "山羊", "黃狗媽媽", "鵝媽媽"], "公雞", "第一個大叫奇怪的角色，就是最先看到蛋的人。", "observe"),
+            mc("公雞看到蛋後，最先做了什麼？", ["一邊跑一邊大叫", "安靜等黃狗媽媽回家", "把蛋拿走", "去找老師"], "一邊跑一邊大叫", "公雞的反應很快，也有點急。", "calm"),
+            mc("公雞一開始的判斷可能有什麼問題？", ["還沒問清楚就下結論", "他沒有看到蛋", "他知道蛋是誰的", "他不會走路"], "還沒問清楚就下結論", "看到怪事時，最好先查證。", "calm")
+          ]
+        },
+        {
+          id: "witness",
+          title: "角色證詞",
+          topic: "誰說了什麼",
+          icon: "證",
+          color: "#4a9aa0",
+          badge: "證詞配對",
+          intro: "角色的說法藏著線索，聽完再判斷。",
+          questions: [
+            mc("哪一句最像公雞會說的話？", ["黃狗媽媽怎麼會生蛋？真奇怪！", "我們先量量這顆蛋有多大。", "這顆蛋是我請人照顧的。", "我今天想吃青草。"], "黃狗媽媽怎麼會生蛋？真奇怪！", "公雞是第一個把消息傳出去的角色。", "observe"),
+            mc("哪一句最像山羊的觀察？", ["這顆蛋好像某些鳥類的蛋，但我還不能確定。", "狗一定會生蛋。", "我一定知道真相。", "我不要看。"], "這顆蛋好像某些鳥類的蛋，但我還不能確定。", "山羊仔細看，沒有急著下結論。", "calm"),
+            mc("鴨子和鴕鳥主要用什麼線索反駁？", ["蛋的大小", "蛋的顏色", "狗窩的位置", "天氣"], "蛋的大小", "他們都在比較太大或太小。", "observe")
+          ]
+        },
+        {
+          id: "reason",
+          title: "蛋的推理",
+          topic: "線索判斷",
+          icon: "推",
+          color: "#557fd0",
+          badge: "推理線索",
+          intro: "推理要根據線索，不是只聽誰說得最大聲。",
+          questions: [
+            mc("只看到狗窩裡有蛋，可以立刻確定黃狗媽媽會生蛋嗎？", ["不可以，還要查更多線索", "可以，因為蛋在狗窩裡", "可以，因為公雞說了", "不用管"], "不可以，還要查更多線索", "地點不一定等於主人。", "calm"),
+            mc("山羊的表現比較接近哪一種？", ["仔細觀察", "到處亂說", "不願意聽別人說", "立刻生氣"], "仔細觀察", "山羊有看一會兒，也提出疑問。", "calm"),
+            mc("下面哪一個推論最合理？", ["蛋可能是別的動物暫時放在狗窩的", "只要在狗窩裡，就一定是狗生的", "公雞說什麼都一定對", "蛋會自己走路"], "蛋可能是別的動物暫時放在狗窩的", "怪事常常需要更多背景。", "calm")
+          ]
+        },
+        {
+          id: "sentence",
+          title: "句子修理站",
+          topic: "時間與動作順序",
+          icon: "句",
+          color: "#cf6753",
+          badge: "句子修理",
+          intro: "把事情排成合理順序，句子才會通順。",
+          questions: [
+            seq("把兩件事排成合理順序。", ["來到黃狗媽媽的家", "好奇地跟著公雞"], ["好奇地跟著公雞", "來到黃狗媽媽的家"], "要先移動，才會到達目的地。"),
+            seq("把短語排成通順的句子。", ["跟著媽媽回家吃飯", "天黑了", "收拾玩沙的器具", "公園裡的小朋友"], ["天黑了", "公園裡的小朋友", "收拾玩沙的器具", "跟著媽媽回家吃飯"], "先有時間背景，再出現人物和動作。"),
+            mc("哪一句比較通順？", ["小朋友收拾玩具後，跟著媽媽回家。", "小朋友回家後，才在公園收拾玩具。", "媽媽跟著玩具回家。", "天黑了，所以蛋會說話。"], "小朋友收拾玩具後，跟著媽媽回家。", "看動作發生的先後。", "observe")
+          ]
+        },
+        {
+          id: "word",
+          title: "生字調查局",
+          topic: "部首與讀音",
+          icon: "字",
+          color: "#6f72c8",
+          badge: "生字觀察",
+          intro: "字形、部首和讀音都是偵探線索。",
+          questions: [
+            mc("「狗」是哪一個部首？", ["犬部", "鳥部", "金部", "頁部"], "犬部", "狗和動物有關，左邊是犬部變形。", "observe"),
+            mc("「睛」是哪一個部首？", ["目部", "日部", "水部", "心部"], "目部", "眼睛和目有關。", "observe"),
+            mc("哪一組字都有「鳥」？", ["鴨、鴉", "狗、怪", "經、細", "忍、住"], "鴨、鴉", "鴨子和烏鴉都和鳥有關。", "observe"),
+            mc("「傳記」的「傳」應該讀哪一個？", ["ㄓㄨㄢˋ", "ㄔㄨㄢˊ", "ㄓㄨㄢ", "ㄔㄨㄤˊ"], "ㄓㄨㄢˋ", "人物故事、傳記、自傳，多讀 ㄓㄨㄢˋ。", "observe"),
+            mc("「傳播」的「傳」應該讀哪一個？", ["ㄔㄨㄢˊ", "ㄓㄨㄢˋ", "ㄓㄨㄤ", "ㄔㄢˊ"], "ㄔㄨㄢˊ", "傳出去、傳開來，多讀 ㄔㄨㄢˊ。", "observe")
+          ]
+        },
+        {
+          id: "truth",
+          title: "真相報告",
+          topic: "完成偵探結論",
+          icon: "真",
+          color: "#438f5a",
+          badge: "真相大白",
+          intro: "把所有線索整理起來，才能寫出可靠的報告。",
+          questions: [
+            mc("誰比較急著把消息傳出去？", ["公雞", "山羊", "黃狗媽媽", "鵝媽媽"], "公雞", "他還沒查清楚，就把消息告訴大家。", "calm"),
+            mc("誰比較謹慎？", ["山羊", "公雞", "鴨子", "黃狗媽媽"], "山羊", "他仔細觀察，提出疑問。", "calm"),
+            mc("蛋真正的來源最可能是？", ["鵝媽媽請黃狗媽媽照顧", "黃狗媽媽自己生的", "公雞帶來的", "山羊畫出來的"], "鵝媽媽請黃狗媽媽照顧", "最後知情者說明真相。", "calm"),
+            mc("這個故事提醒我們什麼？", ["遇到奇怪的事，要先觀察和查證", "看到什麼就馬上到處說", "別人的想法都不用聽", "只要大聲說就一定對"], "遇到奇怪的事，要先觀察和查證", "推理要有線索，也要尊重不同想法。", "calm")
+          ]
+        }
+      ];
+
+      const state = {
+        stage: null,
+        index: 0,
+        answered: false,
+        stars: 0,
+        calm: 0,
+        observe: 0,
+        progress: {},
+        mistakes: [],
+        logs: ["狗窩裡出現一顆蛋，案件開始。"],
+        sequencePicked: []
+      };
+
+      const el = {
+        caseYard: document.querySelector("#caseYard"),
+        introScreen: document.querySelector("#introScreen"),
+        stageScreen: document.querySelector("#stageScreen"),
+        finishScreen: document.querySelector("#finishScreen"),
+        starCount: document.querySelector("#starCount"),
+        badgeCount: document.querySelector("#badgeCount"),
+        calmCount: document.querySelector("#calmCount"),
+        observeCount: document.querySelector("#observeCount"),
+        caseLog: document.querySelector("#caseLog"),
+        badgeBox: document.querySelector("#badgeBox"),
+        stageTopic: document.querySelector("#stageTopic"),
+        stageTitle: document.querySelector("#stageTitle"),
+        progressText: document.querySelector("#progressText"),
+        progressBar: document.querySelector("#progressBar"),
+        promptTitle: document.querySelector("#promptTitle"),
+        questionText: document.querySelector("#questionText"),
+        answerArea: document.querySelector("#answerArea"),
+        feedback: document.querySelector("#feedback"),
+        nextBtn: document.querySelector("#nextBtn"),
+        undoBtn: document.querySelector("#undoBtn"),
+        finishText: document.querySelector("#finishText")
+      };
+
+      document.querySelector("#startBtn").addEventListener("click", startNextStage);
+      document.querySelector("#resetBtn").addEventListener("click", resetGame);
+      document.querySelector("#homeBtn").addEventListener("click", () => show("intro"));
+      document.querySelector("#hintBtn").addEventListener("click", showHint);
+      document.querySelector("#nextBtn").addEventListener("click", nextQuestion);
+      document.querySelector("#undoBtn").addEventListener("click", resetSequence);
+      document.querySelector("#speakBtn").addEventListener("click", speakQuestion);
+      document.querySelector("#reviewBtn").addEventListener("click", reviewMistake);
+      document.querySelector("#againBtn").addEventListener("click", resetGame);
+
+      load();
+      drawMap();
+      renderHud();
+
+      function mc(text, answers, correct, hint, kind) {
+        return { type: "mc", text, answers, correct, hint, kind };
+      }
+
+      function seq(text, options, correct, hint) {
+        return { type: "seq", text, options, correct, hint, kind: "observe" };
+      }
+
+      function show(name) {
+        el.introScreen.classList.toggle("active", name === "intro");
+        el.stageScreen.classList.toggle("active", name === "stage");
+        el.finishScreen.classList.toggle("active", name === "finish");
+        if (name === "stage" && window.matchMedia("(max-width: 940px)").matches) {
+          requestAnimationFrame(() => el.stageScreen.scrollIntoView({ block: "start", behavior: "smooth" }));
+        }
+      }
+
+      function drawMap() {
+        const layout = [
+          "wwwwwwwwww",
+          "wggggggggw",
+          "wgSgppgSgw",
+          "wgggppgggw",
+          "wppSppSppw",
+          "wgggppgggw",
+          "wgSgppgSgw",
+          "wggggggggw",
+          "wssggggssw",
+          "wwwwwwwwww"
+        ];
+        const stagePositions = [
+          { pos: 22, id: "scene" },
+          { pos: 27, id: "witness" },
+          { pos: 42, id: "reason" },
+          { pos: 45, id: "sentence" },
+          { pos: 62, id: "word" },
+          { pos: 67, id: "truth" }
+        ];
+        const byPos = Object.fromEntries(stagePositions.map((item) => [item.pos, item.id]));
+        el.caseYard.innerHTML = "";
+        layout.join("").split("").forEach((char, index) => {
+          const stageId = byPos[index];
+          const stage = stages.find((item) => item.id === stageId);
+          const tile = document.createElement(stage ? "button" : "span");
+          tile.className = "tile";
+          if (char === "w") tile.classList.add("water");
+          if (char === "s") tile.classList.add("soil");
+          if (char === "p") tile.classList.add("path");
+          if (index > 74) tile.classList.add("hide-mobile");
+          if (stage) {
+            const done = isStageDone(stage);
+            const open = (state.progress[stage.id] || 0) > 0;
+            tile.type = "button";
+            tile.classList.add("stage");
+            if (open) tile.classList.add("is-open");
+            if (done) tile.classList.add("is-done");
+            tile.style.background = stage.color;
+            tile.setAttribute("aria-label", stage.title);
+            tile.innerHTML = `<span class="stage-icon">${stage.icon}</span>${done ? '<span class="stage-check">✓</span>' : ""}`;
+            tile.addEventListener("click", () => startStage(stage.id));
+          }
+          el.caseYard.appendChild(tile);
+        });
+      }
+
+      function renderHud() {
+        const complete = stages.filter(isStageDone).length;
+        el.starCount.textContent = state.stars;
+        el.badgeCount.textContent = `${complete}/6`;
+        el.calmCount.textContent = state.calm;
+        el.observeCount.textContent = state.observe;
+        el.caseLog.innerHTML = state.logs.slice(0, 5).map((log) => `<li>${log}</li>`).join("");
+        el.badgeBox.innerHTML = stages.map((stage) => `<div class="badge ${isStageDone(stage) ? "done" : ""}">${stage.badge}</div>`).join("");
+        save();
+      }
+
+      function isStageDone(stage) {
+        return (state.progress[stage.id] || 0) >= stage.questions.length;
+      }
+
+      function startNextStage() {
+        const next = stages.find((stage) => !isStageDone(stage));
+        if (next) startStage(next.id);
+        else finish();
+      }
+
+      function startStage(id) {
+        state.stage = stages.find((stage) => stage.id === id);
+        state.index = Math.min(state.progress[id] || 0, state.stage.questions.length - 1);
+        renderQuestion();
+        show("stage");
+      }
+
+      function renderQuestion() {
+        const stage = state.stage;
+        const q = stage.questions[state.index];
+        state.answered = false;
+        state.sequencePicked = [];
+        el.stageTopic.textContent = stage.topic;
+        el.stageTitle.textContent = stage.title;
+        el.progressText.textContent = `${state.index + 1}/${stage.questions.length}`;
+        el.progressBar.style.width = `${(state.index / stage.questions.length) * 100}%`;
+        el.promptTitle.textContent = stage.intro;
+        el.questionText.textContent = q.text;
+        el.feedback.className = "feedback";
+        el.feedback.textContent = q.type === "seq" ? "依照事件發生的順序，依序點選短語。" : "選出最合理的答案。";
+        el.nextBtn.hidden = true;
+        el.undoBtn.hidden = q.type !== "seq";
+        el.answerArea.innerHTML = "";
+        if (q.type === "seq") renderSequence(q);
+        else renderAnswers(q);
+      }
+
+      function renderAnswers(q) {
+        const box = document.createElement("div");
+        box.className = "answers";
+        shuffle(q.answers).forEach((answer) => {
+          const button = document.createElement("button");
+          button.className = "answer";
+          button.type = "button";
+          button.textContent = answer;
+          button.addEventListener("click", () => chooseAnswer(button, answer));
+          box.appendChild(button);
+        });
+        el.answerArea.appendChild(box);
+      }
+
+      function chooseAnswer(button, answer) {
+        if (state.answered) return;
+        const q = state.stage.questions[state.index];
+        const correct = answer === q.correct;
+        button.classList.add(correct ? "good" : "bad");
+        if (correct) {
+          markCorrect(q);
+          [...el.answerArea.querySelectorAll("button")].forEach((child) => {
+            child.disabled = true;
+            if (child.textContent === q.correct) child.classList.add("good");
+          });
+        } else {
+          markWrong(q);
+          button.disabled = true;
+        }
+      }
+
+      function renderSequence(q) {
+        const board = document.createElement("div");
+        board.className = "sequence-board";
+        board.innerHTML = `
+          <div class="sequence-label">已排順序</div>
+          <div id="sequencePicked" class="sequence-picked"></div>
+          <div class="sequence-label">可選短語</div>
+          <div id="sequenceOptions" class="sequence-options"></div>
+        `;
+        el.answerArea.appendChild(board);
+        const options = board.querySelector("#sequenceOptions");
+        shuffle(q.options).forEach((option) => {
+          const button = document.createElement("button");
+          button.className = "seq-btn";
+          button.type = "button";
+          button.textContent = option;
+          button.addEventListener("click", () => pickSequence(button, option));
+          options.appendChild(button);
+        });
+        drawSequencePicked();
+      }
+
+      function pickSequence(button, option) {
+        if (state.answered) return;
+        button.disabled = true;
+        state.sequencePicked.push(option);
+        drawSequencePicked();
+        const q = state.stage.questions[state.index];
+        if (state.sequencePicked.length === q.correct.length) checkSequence(q);
+      }
+
+      function drawSequencePicked() {
+        const picked = document.querySelector("#sequencePicked");
+        if (!picked) return;
+        picked.innerHTML = state.sequencePicked.length
+          ? state.sequencePicked.map((item, index) => `<div class="picked-item"><b>${index + 1}</b>${item}</div>`).join("")
+          : '<div class="picked-item">請依序點選短語</div>';
+      }
+
+      function checkSequence(q) {
+        const correct = q.correct.every((item, index) => state.sequencePicked[index] === item);
+        if (correct) {
+          markCorrect(q);
+          [...el.answerArea.querySelectorAll("button")].forEach((child) => {
+            child.disabled = true;
+          });
+        } else {
+          markWrong(q);
+        }
+      }
+
+      function resetSequence() {
+        if (!state.stage) return;
+        const q = state.stage.questions[state.index];
+        if (q.type !== "seq" || state.answered) return;
+        state.sequencePicked = [];
+        renderQuestion();
+      }
+
+      function markCorrect(q) {
+        state.answered = true;
+        state.stars += 1;
+        if (q.kind === "calm") state.calm += 1;
+        if (q.kind === "observe") state.observe += 1;
+        state.progress[state.stage.id] = Math.max(state.progress[state.stage.id] || 0, state.index + 1);
+        el.feedback.className = "feedback good";
+        el.feedback.textContent = `答對了，取得 1 顆線索星。${stageCompleteMessage()}`;
+        addLog(`${state.stage.title}取得新線索。`);
+        el.nextBtn.hidden = false;
+        drawMap();
+        renderHud();
+      }
+
+      function markWrong(q) {
+        el.feedback.className = "feedback try";
+        el.feedback.textContent = `偵探提示：${q.hint}`;
+        state.mistakes.push({ stageId: state.stage.id, index: state.index });
+        addLog(`${state.stage.title}留下提示：${q.hint}`);
+        renderHud();
+      }
+
+      function stageCompleteMessage() {
+        const progress = (state.progress[state.stage.id] || 0);
+        return progress >= state.stage.questions.length ? `完成「${state.stage.badge}」徽章。` : "偵探筆記更新。";
+      }
+
+      function showHint() {
+        const q = state.stage.questions[state.index];
+        el.feedback.className = "feedback try";
+        el.feedback.textContent = `偵探提示：${q.hint}`;
+      }
+
+      function nextQuestion() {
+        if (state.index < state.stage.questions.length - 1) {
+          state.index += 1;
+          renderQuestion();
+          return;
+        }
+        if (stages.every(isStageDone)) finish();
+        else show("intro");
+      }
+
+      function finish() {
+        const mistakes = new Set(state.mistakes.map((item) => `${item.stageId}-${item.index}`)).size;
+        const title = state.calm >= 10 ? "冷靜小偵探" : "狗窩蛋事件破解者";
+        el.finishText.textContent = `你的稱號是「${title}」。你取得 ${state.stars} 顆線索星、${state.calm} 點冷靜值、${state.observe} 點觀察值，完成 6 枚徽章。錯題筆記裡有 ${mistakes} 題可以再練。`;
+        show("finish");
+      }
+
+      function reviewMistake() {
+        const first = state.mistakes[0];
+        if (!first) {
+          el.finishText.textContent = "目前沒有錯題。你可以重新調查，挑戰更高觀察值。";
+          return;
+        }
+        state.stage = stages.find((stage) => stage.id === first.stageId);
+        state.index = first.index;
+        renderQuestion();
+        show("stage");
+      }
+
+      function resetGame() {
+        state.stage = null;
+        state.index = 0;
+        state.answered = false;
+        state.stars = 0;
+        state.calm = 0;
+        state.observe = 0;
+        state.progress = {};
+        state.mistakes = [];
+        state.logs = ["狗窩裡出現一顆蛋，案件開始。"];
+        state.sequencePicked = [];
+        localStorage.removeItem("dogEggCaseGame");
+        drawMap();
+        renderHud();
+        show("intro");
+      }
+
+      function speakQuestion() {
+        if (!("speechSynthesis" in window)) {
+          el.feedback.className = "feedback try";
+          el.feedback.textContent = "這台裝置目前不支援朗讀。";
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const speech = new SpeechSynthesisUtterance(el.questionText.textContent);
+        speech.lang = "zh-TW";
+        speech.rate = 0.88;
+        window.speechSynthesis.speak(speech);
+      }
+
+      function addLog(message) {
+        state.logs = [message, ...state.logs.filter((item) => item !== message)].slice(0, 6);
+      }
+
+      function shuffle(items) {
+        return items
+          .map((value) => ({ value, sort: Math.random() }))
+          .sort((a, b) => a.sort - b.sort)
+          .map((item) => item.value);
+      }
+
+      function save() {
+        localStorage.setItem("dogEggCaseGame", JSON.stringify({
+          stars: state.stars,
+          calm: state.calm,
+          observe: state.observe,
+          progress: state.progress,
+          mistakes: state.mistakes,
+          logs: state.logs
+        }));
+      }
+
+      function load() {
+        try {
+          const saved = JSON.parse(localStorage.getItem("dogEggCaseGame"));
+          if (!saved) return;
+          state.stars = saved.stars || 0;
+          state.calm = saved.calm || 0;
+          state.observe = saved.observe || 0;
+          state.progress = saved.progress || {};
+          state.mistakes = saved.mistakes || [];
+          state.logs = saved.logs || ["狗窩裡出現一顆蛋，案件開始。"];
+        } catch {
+          localStorage.removeItem("dogEggCaseGame");
+        }
+      }
+    </script>
+  </body>
+</html>
